@@ -1,3 +1,7 @@
+
+https://chat.openai.com/share/cf10828a-b51a-4603-b02f-4c91bbb9956e
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.models import Sequential
