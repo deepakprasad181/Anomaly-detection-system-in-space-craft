@@ -1,0 +1,690 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import numpy as np
+
+# Function to plot selected parameters, detect anomalies, and identify root cause
+def plot_parameters_and_detect_anomalies():
+    # Get selected parameters from the listbox
+    selected_params = [parameters_listbox.get(idx) for idx in parameters_listbox.curselection()]
+
+    # Check if at least one parameter is selected
+    if len(selected_params) == 0:
+        messagebox.showerror("Error", "Please select at least one parameter to plot.")
+        return
+
+    # Clear previous plots and anomalies
+    for widget in plot_frame.winfo_children():
+        widget.destroy()
+
+    # Load data for anomaly detection (replace file path with your data)
+    data = pd.read_csv('anomaly_data.csv')
+
+    # Create anomaly detection model (Example: Isolation Forest)
+    model = IsolationForest(contamination=0.05)  # Adjust contamination parameter as needed
+
+    # Detect anomalies for each selected parameter
+    for param in selected_params:
+        fig = Figure(figsize=(8, 5))
+        ax = fig.add_subplot(111)
+        ax.set_title(f'Parameter: {param}')
+
+        # Plot data for all test cases
+        for test_case in data['Test Case'].unique():
+            test_case_data = data[data['Test Case'] == test_case]
+            ax.plot(test_case_data['Timestamp'], test_case_data[param], label=f'Test Case {test_case}')
+
+        ax.set_xlabel('Timestamp')
+        ax.set_ylabel(param)
+        ax.legend()
+
+        # Detect anomalies
+        parameter_values = data[param].values.reshape(-1, 1)
+        anomalies = model.fit_predict(parameter_values)
+        anomalous_indices = [i for i, label in enumerate(anomalies) if label == -1]
+
+        # Highlight anomalies on the plot
+        for idx in anomalous_indices:
+            ax.scatter(data.iloc[idx]['Timestamp'], data.iloc[idx][param], color='red', marker='x', label='Anomaly')
+
+        # Identify root cause of anomaly
+        root_cause_param = identify_root_cause(anomalous_indices, data, selected_params)
+        root_cause_label.config(text=f"Root Cause of Anomaly: {root_cause_param}")
+
+        # Embed the plot in the Tkinter window
+        canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+
+# Function to identify root cause parameter of anomaly
+def identify_root_cause(anomalous_indices, data, selected_params):
+    # Calculate mean values for each parameter
+    param_means = {param: data[param].mean() for param in selected_params}
+
+    # Calculate distance of each anomalous point from mean value of each parameter
+    distances = {param: [] for param in selected_params}
+    for idx in anomalous_indices:
+        for param in selected_params:
+            distance = abs(data.iloc[idx][param] - param_means[param])
+            distances[param].append(distance)
+
+    # Calculate average distance for each parameter
+    avg_distances = {param: np.mean(distances[param]) for param in selected_params}
+
+    # Identify parameter with highest average distance as root cause
+    root_cause_param = max(avg_distances, key=avg_distances.get)
+    return root_cause_param
+
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Parameter Plotter with Anomaly Detection and Root Cause Identification")
+
+# Create parameter selection frame
+param_frame = ttk.Frame(root)
+param_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label = ttk.Label(param_frame, text="Select Parameters to Plot:")
+label.pack(side=tk.TOP, padx=10, pady=5)
+
+parameters_listbox = tk.Listbox(param_frame, selectmode=tk.MULTIPLE, exportselection=False)
+parameters_listbox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Add parameters to the listbox
+parameters = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+for param in parameters:
+    parameters_listbox.insert(tk.END, param)
+
+# Create plot button
+plot_button = ttk.Button(param_frame, text="Plot Parameters and Detect Anomalies", command=plot_parameters_and_detect_anomalies)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+# Create label to display root cause parameter
+root_cause_label = ttk.Label(root, text="")
+root_cause_label.pack(padx=10, pady=5)
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest  # Example: Using Isolation Forest for anomaly detection
+
+# Function to plot selected parameters and detect anomalies
+def plot_parameters_and_detect_anomalies():
+    # Get selected parameters from the listbox
+    selected_params = [parameters_listbox.get(idx) for idx in parameters_listbox.curselection()]
+
+    # Check if at least one parameter is selected
+    if len(selected_params) == 0:
+        messagebox.showerror("Error", "Please select at least one parameter to plot.")
+        return
+
+    # Clear previous plots and anomalies
+    for widget in plot_frame.winfo_children():
+        widget.destroy()
+
+    # Load data for anomaly detection (replace file path with your data)
+    data = pd.read_csv('anomaly_data.csv')
+
+    # Create anomaly detection model (Example: Isolation Forest)
+    model = IsolationForest(contamination=0.05)  # Adjust contamination parameter as needed
+
+    # Detect anomalies for each selected parameter
+    for param in selected_params:
+        fig = Figure(figsize=(8, 5))
+        ax = fig.add_subplot(111)
+        ax.set_title(f'Parameter: {param}')
+
+        # Plot data for all test cases
+        for test_case in data['Test Case'].unique():
+            test_case_data = data[data['Test Case'] == test_case]
+            ax.plot(test_case_data['Timestamp'], test_case_data[param], label=f'Test Case {test_case}')
+
+        ax.set_xlabel('Timestamp')
+        ax.set_ylabel(param)
+        ax.legend()
+
+        # Detect anomalies
+        parameter_values = data[param].values.reshape(-1, 1)
+        anomalies = model.fit_predict(parameter_values)
+        anomalous_indices = [i for i, label in enumerate(anomalies) if label == -1]
+
+        # Highlight anomalies on the plot
+        for idx in anomalous_indices:
+            ax.scatter(data.iloc[idx]['Timestamp'], data.iloc[idx][param], color='red', marker='x', label='Anomaly')
+
+        # Embed the plot in the Tkinter window
+        canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Parameter Plotter with Anomaly Detection")
+
+# Create parameter selection frame
+param_frame = ttk.Frame(root)
+param_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label = ttk.Label(param_frame, text="Select Parameters to Plot:")
+label.pack(side=tk.TOP, padx=10, pady=5)
+
+parameters_listbox = tk.Listbox(param_frame, selectmode=tk.MULTIPLE, exportselection=False)
+parameters_listbox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Add parameters to the listbox
+parameters = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+for param in parameters:
+    parameters_listbox.insert(tk.END, param)
+
+# Create plot button
+plot_button = ttk.Button(param_frame, text="Plot Parameters and Detect Anomalies", command=plot_parameters_and_detect_anomalies)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+# Add parameters to the listbox
+parameters = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+for param in parameters:
+    parameters_listbox.insert(tk.END, param)
+
+
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+
+# Function to plot selected parameters
+def plot_parameters():
+    # Get selected parameters from the listbox
+    selected_params = [parameters_listbox.get(idx) for idx in parameters_listbox.curselection()]
+
+    # Check if at least one parameter is selected
+    if len(selected_params) == 0:
+        messagebox.showerror("Error", "Please select at least one parameter to plot.")
+        return
+
+    # Clear previous plots
+    for widget in plot_frame.winfo_children():
+        widget.destroy()
+
+    # Create a separate plot for each selected parameter
+    for param in selected_params:
+        fig = Figure(figsize=(8, 5))
+        ax = fig.add_subplot(111)
+        ax.set_title(f'Parameter: {param}')
+
+        # Plot data for each dyn.out file (replace file paths with your own)
+        dyn_out_files = ['dyn_out_1.csv', 'dyn_out_2.csv', 'dyn_out_3.csv', 'dyn_out_4.csv', 'dyn_out_5.csv']
+        for file in dyn_out_files:
+            # Load data
+            data = pd.read_csv(file)
+            # Plot parameter for all test cases
+            for test_case in data['Test Case'].unique():
+                test_case_data = data[data['Test Case'] == test_case]
+                ax.plot(test_case_data['Timestamp'], test_case_data[param], label=f'{file} - Test Case {test_case}')
+
+        ax.set_xlabel('Timestamp')
+        ax.set_ylabel(param)
+        ax.legend()
+
+        # Embed the plot in the Tkinter window
+        canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Parameter Plotter")
+
+# Create parameter selection frame
+param_frame = ttk.Frame(root)
+param_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label = ttk.Label(param_frame, text="Select Parameters to Plot:")
+label.pack(side=tk.TOP, padx=10, pady=5)
+
+parameters_listbox = tk.Listbox(param_frame, selectmode=tk.MULTIPLE, exportselection=False)
+parameters_listbox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Add parameters to the listbox
+parameters = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+for param in parameters:
+    parameters_listbox.insert(tk.END, param)
+
+# Create plot button
+plot_button = ttk.Button(param_frame, text="Plot Parameters", command=plot_parameters)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+
+# Function to plot selected parameters
+def plot_parameters():
+    # Get selected parameters from the listbox
+    selected_params = [parameters_listbox.get(idx) for idx in parameters_listbox.curselection()]
+
+    # Check if at least one parameter is selected
+    if len(selected_params) == 0:
+        messagebox.showerror("Error", "Please select at least one parameter to plot.")
+        return
+
+    # Clear previous plots
+    for widget in plot_frame.winfo_children():
+        widget.destroy()
+
+    # Create a separate plot for each selected parameter
+    for param in selected_params:
+        fig = Figure(figsize=(8, 5))
+        ax = fig.add_subplot(111)
+        ax.set_title(f'Parameter: {param}')
+
+        # Plot data for each dyn.out file
+        for file in dyn_out_files:
+            # Load data
+            data = pd.read_csv(file)
+            # Plot parameter for all test cases
+            for test_case in data['Test Case'].unique():
+                test_case_data = data[data['Test Case'] == test_case]
+                ax.plot(test_case_data['Timestamp'], test_case_data[param], label=f'{file} - Test Case {test_case}')
+
+        ax.set_xlabel('Timestamp')
+        ax.set_ylabel(param)
+        ax.legend()
+
+        # Embed the plot in the Tkinter window
+        canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Parameter Plotter")
+
+# Load dyn.out files
+dyn_out_files = ['dyn_out_1.csv', 'dyn_out_2.csv', 'dyn_out_3.csv', 'dyn_out_4.csv', 'dyn_out_5.csv']
+
+# Create parameter selection frame
+param_frame = ttk.Frame(root)
+param_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label = ttk.Label(param_frame, text="Select Parameters to Plot:")
+label.pack(side=tk.TOP, padx=10, pady=5)
+
+parameters_listbox = tk.Listbox(param_frame, selectmode=tk.MULTIPLE, exportselection=False)
+parameters_listbox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Add parameters to the listbox
+parameters = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+for param in parameters:
+    parameters_listbox.insert(tk.END, param)
+
+# Create plot button
+plot_button = ttk.Button(param_frame, text="Plot Parameters", command=plot_parameters)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# List of parameters to plot
+parameters_to_plot = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+
+# Load dyn.out files
+dyn_out_files = ['dyn_out_1.csv', 'dyn_out_2.csv', 'dyn_out_3.csv', 'dyn_out_4.csv', 'dyn_out_5.csv']
+
+# Create a separate plot for each parameter
+for param in parameters_to_plot:
+    plt.figure(figsize=(10, 6))
+    plt.title(f'Parameter: {param}')
+    
+    # Plot data for each dyn.out file
+    for file in dyn_out_files:
+        # Load data
+        data = pd.read_csv(file)
+        # Plot parameter for all test cases
+        for test_case in data['Test Case'].unique():
+            test_case_data = data[data['Test Case'] == test_case]
+            plt.plot(test_case_data['Timestamp'], test_case_data[param], label=f'{file} - Test Case {test_case}')
+    
+    plt.xlabel('Timestamp')
+    plt.ylabel(param)
+    plt.legend()
+    plt.show()
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# List of parameters to plot
+parameters_to_plot = ['Parameter_1', 'Parameter_2', 'Parameter_3', 'Parameter_4', 'Parameter_5']
+
+# Load dyn.out files
+dyn_out_files = ['dyn_out_1.csv', 'dyn_out_2.csv', 'dyn_out_3.csv', 'dyn_out_4.csv', 'dyn_out_5.csv']
+
+# Load and plot data for selected parameters
+plt.figure(figsize=(15, 8))
+for param in parameters_to_plot:
+    plt.subplot(len(parameters_to_plot), 1, parameters_to_plot.index(param) + 1)
+    for file in dyn_out_files:
+        # Load data
+        data = pd.read_csv(file)
+        # Plot parameter for all test cases
+        for test_case in data['Test Case'].unique():
+            test_case_data = data[data['Test Case'] == test_case]
+            plt.plot(test_case_data['Timestamp'], test_case_data[param], label=f'{file} - Test Case {test_case}')
+    plt.xlabel('Timestamp')
+    plt.ylabel(param)
+    plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load sensor output files
+file_paths = ['sensor_output1.csv', 'sensor_output2.csv']  # List of file paths
+data = pd.concat([pd.read_csv(file) for file in file_paths], ignore_index=True)
+
+# Preprocess the data
+# Handle missing values, scale or normalize data, convert timestamps if necessary
+
+# Visualize data
+num_parameters = 15  # Number of parameters
+num_test_cases = len(data['Test Case'].unique())  # Number of test cases
+
+plt.figure(figsize=(15, 8))
+for i in range(num_parameters):
+    plt.subplot(num_parameters, 1, i+1)
+    for test_case in data['Test Case'].unique():
+        test_case_data = data[data['Test Case'] == test_case]
+        plt.plot(test_case_data['Timestamp'], test_case_data[f'Parameter_{i+1}'], label=f'Test Case {test_case}')
+    plt.xlabel('Timestamp')
+    plt.ylabel(f'Parameter {i+1}')
+    plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Detect anomalies
+# Apply anomaly detection techniques to identify deviations or outliers in the data
+
+# Analyze root causes
+# Look for patterns or correlations in the data to explain the anomalies
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load sensor output files
+file_paths = ['sensor_output1.csv', 'sensor_output2.csv']  # List of file paths
+data = pd.concat([pd.read_csv(file) for file in file_paths], ignore_index=True)
+
+# Preprocess the data
+# Handle missing values, scale or normalize data, convert timestamps if necessary
+
+# Visualize data
+num_parameters = 15  # Number of parameters
+num_test_cases = len(data['Test Case'].unique())  # Number of test cases
+
+plt.figure(figsize=(15, 8))
+for i in range(num_parameters):
+    plt.subplot(num_parameters, 1, i+1)
+    for test_case in data['Test Case'].unique():
+        test_case_data = data[data['Test Case'] == test_case]
+        plt.plot(test_case_data['Timestamp'], test_case_data[f'Parameter_{i+1}'], label=f'Test Case {test_case}')
+    plt.xlabel('Timestamp')
+    plt.ylabel(f'Parameter {i+1}')
+    plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Detect anomalies
+# Apply anomaly detection techniques to identify deviations or outliers in the data
+
+# Analyze root causes
+# Look for patterns or correlations in the data to explain the anomalies
+
+
+# Assuming AE01 and NEW_data contain the extracted data
+# Assuming AE01 and NEW_data are NumPy arrays with shape (n_samples, n_features)
+
+# Normalize the data
+scaler = MinMaxScaler()
+AE01_scaled = scaler.fit_transform(AE01)
+NEW_data_scaled = scaler.transform(NEW_data)
+
+# Define LSTM autoencoder model architecture
+model = Sequential()
+model.add(LSTM(units=64, input_shape=(AE01_scaled.shape[1], AE01_scaled.shape[2])))
+model.add(Dense(units=AE01_scaled.shape[1]))
+model.compile(optimizer='adam', loss='mse')
+
+# Train the autoencoder model
+model.fit(AE01_scaled, AE01_scaled, epochs=50, batch_size=32, validation_split=0.2)
+
+# Evaluate the model on the NEW_data
+predicted_data_scaled = model.predict(NEW_data_scaled)
+mse = mean_squared_error(NEW_data_scaled, predicted_data_scaled)
+
+# Detect anomalies based on mean squared error (MSE)
+threshold = np.percentile(mse, 95)  # Example: 95th percentile
+anomalies = NEW_data[mse > threshold]
+
+# Analyze root causes of anomalies
+# You can analyze feature importance, correlation, or other factors to determine root causes
+
+
+from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+
+# Assuming reference_data is your DataFrame containing reference data
+# Assuming anomalies is your DataFrame containing detected anomalies
+
+# Combine reference data and anomalies
+combined_data = pd.concat([reference_data, anomalies])
+
+# Create target labels (1 for normal data, 0 for anomalies)
+target = np.ones(len(reference_data))
+target = np.concatenate([target, np.zeros(len(anomalies))])
+
+# Train a supervised model with feature importance
+model = RandomForestClassifier(n_estimators=100)
+model.fit(combined_data, target)
+
+# Get feature importance scores
+feature_importance = model.feature_importances_
+
+# Sort features based on importance scores
+sorted_indices = np.argsort(feature_importance)[::-1]
+sorted_features = combined_data.columns[sorted_indices]
+
+# Print feature importance scores and corresponding features
+for score, feature in zip(feature_importance[sorted_indices], sorted_features):
+    print(f"Feature: {feature}, Importance Score: {score}")
+
+
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# Assuming reference_data is your DataFrame containing reference data
+
+# Data preprocessing
+scaler = StandardScaler()
+reference_data_scaled = scaler.fit_transform(reference_data)
+
+# Prepare sequences for LSTM
+sequence_length = 10  # Length of each sequence
+sequences = []
+for i in range(len(reference_data_scaled) - sequence_length):
+    sequences.append(reference_data_scaled[i:i+sequence_length])
+
+X = np.array(sequences)
+y = np.array(reference_data_scaled[sequence_length:])  # Predict the next data point in each sequence
+
+# Define LSTM model architecture
+model = Sequential()
+model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+model.add(LSTM(units=50))
+model.add(Dense(units=X.shape[2]))  # Output layer with the same number of features as input
+model.compile(optimizer='adam', loss='mse')
+
+# Train the LSTM model
+model.fit(X, y, epochs=50, batch_size=32, validation_split=0.2)
+
+# Predict the next data point in each sequence
+predictions = model.predict(X)
+
+# Calculate prediction error
+prediction_error = np.mean(np.square(y - predictions), axis=1)
+
+# Set threshold for anomaly detection
+threshold = np.percentile(prediction_error, 95)  # Example: 95th percentile
+
+# Detect anomalies
+anomalies = reference_data[sequence_length:][prediction_error > threshold]
+
+# Evaluate model performance (optional)
+# Evaluate the performance of the LSTM-based anomaly detection method
+
+
+from keras.layers import Input, Dense
+from keras.models import Model
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# Assuming reference_data is your DataFrame containing reference data
+
+# Data preprocessing
+scaler = StandardScaler()
+reference_data_scaled = scaler.fit_transform(reference_data)
+
+# Define autoencoder architecture
+input_dim = reference_data_scaled.shape[1]
+encoding_dim = 10  # Choose the dimension of the latent space representation
+input_data = Input(shape=(input_dim,))
+encoded = Dense(encoding_dim, activation='relu')(input_data)
+decoded = Dense(input_dim, activation='sigmoid')(encoded)
+
+# Create autoencoder model
+autoencoder = Model(input_data, decoded)
+autoencoder.compile(optimizer='adam', loss='mse')
+
+# Train the autoencoder model
+autoencoder.fit(reference_data_scaled, reference_data_scaled, epochs=50, batch_size=32, validation_split=0.2)
+
+# Reconstruct input data
+reconstructed_data = autoencoder.predict(reference_data_scaled)
+
+# Calculate reconstruction error
+reconstruction_error = np.mean(np.square(reference_data_scaled - reconstructed_data), axis=1)
+
+# Set threshold for anomaly detection
+threshold = np.percentile(reconstruction_error, 95)  # Example: 95th percentile
+
+# Detect anomalies
+anomalies = reference_data[reconstruction_error > threshold]
+
+# Evaluate model performance (optional)
+# Evaluate the performance of the autoencoder-based anomaly detection method
+
+
+from sklearn.ensemble import IsolationForest
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+# Assuming reference_data is your DataFrame containing reference data
+
+# Preprocess the data
+scaler = StandardScaler()
+reference_data_scaled = scaler.fit_transform(reference_data)
+
+# Split the data into training and validation sets
+X_train, X_val = train_test_split(reference_data_scaled, test_size=0.2, random_state=42)
+
+# Train the model
+model = IsolationForest(contamination=0.05)  # Adjust contamination parameter as needed
+model.fit(X_train)
+
+# Evaluate the model (optional)
+# You can use validation set X_val to evaluate the model's performance
+
+# Test with new input data
+# Assuming new_input_data is your DataFrame containing new input data
+new_input_data_scaled = scaler.transform(new_input_data)
+
+# Detect anomalies
+anomaly_scores = model.decision_function(new_input_data_scaled)
+anomalies = new_input_data[anomaly_scores < 0]
+
+# Interpret results and analyze anomalies
+# You can further analyze the detected anomalies and their potential root causes
+
+
+def find_root_cause(anomaly, reference_data):
+    root_cause = None
+    min_diff_sum = float('inf')
+
+    for feature in reference_data.columns:
+        diff_sum = np.abs(reference_data[feature] - anomaly[feature]).sum()
+        if diff_sum < min_diff_sum:
+            min_diff_sum = diff_sum
+            root_cause = feature
+
+    return root_cause
+
+# Example usage:
+anomaly = anomalies.iloc[0]  # Assuming anomalies is a DataFrame containing detected anomalies
+root_cause_parameter = find_root_cause(anomaly, reference_data)
+print("Root cause parameter:", root_cause_parameter)
