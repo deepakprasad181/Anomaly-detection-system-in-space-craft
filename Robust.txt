@@ -1,0 +1,1376 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+
+# Specify the paths to the Excel files (modify as needed)
+excel_file_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from multiple Excel files
+def load_data():
+    try:
+        # Load data from each Excel file and concatenate into a single DataFrame
+        data_frames = [pd.read_excel(file) for file in excel_file_paths]
+        return pd.concat(data_frames)
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(data):
+    model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+    return model.fit_predict(data)
+
+# Function to plot selected column
+def plot_selected_column(selected_column):
+    # Check if a column is selected
+    if not selected_column:
+        messagebox.showerror("Error", "Please select a column to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    data = load_data()
+    if data is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(data.drop(columns=[selected_column]))
+
+    fig = Figure(figsize=(12, 8))
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected column across all files
+    for file_path in excel_file_paths:
+        # Load data from current file
+        df = pd.read_excel(file_path)
+        # Plot selected column against the first column (time values)
+        ax.plot(df.iloc[:, 0], df[selected_column], marker='o', linestyle='-', label=file_path)
+
+    # Reset index for data
+    data.reset_index(drop=True, inplace=True)
+
+    # Mark anomaly points on the plot
+    anomaly_indices = anomalies == -1
+    anomaly_points = data[anomaly_indices]
+    ax.scatter(anomaly_points.iloc[:, 0], anomaly_points[selected_column], color='red', label='Anomaly')
+
+    ax.set_title(f'Column: {selected_column}')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Set x-axis format to datetime if applicable
+    if pd.api.types.is_datetime64_any_dtype(data.iloc[:, 0]):
+        ax.xaxis_date()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Column Plotter with Anomaly Detection")
+
+# Load data from multiple Excel files
+data = load_data()
+if data is not None:
+    columns = list(data.columns)
+else:
+    columns = []
+
+# Create frame for column selection
+column_frame = ttk.Frame(root)
+column_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_column = ttk.Label(column_frame, text="Select Column to Plot:")
+label_column.pack(side=tk.TOP, padx=10, pady=5)
+
+column_combobox = ttk.Combobox(column_frame, values=columns, state="readonly", width=40)
+column_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button
+def plot_selected():
+    selected_column = column_combobox.get()
+    plot_selected_column(selected_column)
+
+plot_button = ttk.Button(column_frame, text="Plot Selected Column", command=plot_selected)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+
+------------------------------------------------------------------------------------------
+
+				RCA	
+
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Specify the paths to the Excel files (modify as needed)
+excel_file_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from multiple Excel files
+def load_data():
+    try:
+        # Load data from each Excel file and concatenate into a single DataFrame
+        data_frames = [pd.read_excel(file) for file in excel_file_paths]
+        return pd.concat(data_frames)
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(data):
+    model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+    return model.fit_predict(data)
+
+# Function to plot selected column
+def plot_selected_column(selected_column):
+    # Check if a column is selected
+    if not selected_column:
+        messagebox.showerror("Error", "Please select a column to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    data = load_data()
+    if data is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(data.drop(columns=[selected_column]))
+
+    fig = Figure(figsize=(12, 8))
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected column across all files
+    for file_path in excel_file_paths:
+        # Load data from current file
+        df = pd.read_excel(file_path)
+        # Plot selected column against the first column (time values)
+        ax.plot(df.iloc[:, 0], df[selected_column], marker='o', linestyle='-', label=file_path)
+
+    # Reset index for data
+    data.reset_index(drop=True, inplace=True)
+
+    # Mark anomaly points on the plot
+    anomaly_indices = anomalies == -1
+    anomaly_points = data[anomaly_indices]
+    ax.scatter(anomaly_points.iloc[:, 0], anomaly_points[selected_column], color='red', label='Anomaly')
+
+    ax.set_title(f'Column: {selected_column}')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Set x-axis format to datetime if applicable
+    if pd.api.types.is_datetime64_any_dtype(data.iloc[:, 0]):
+        ax.xaxis_date()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    # Perform root cause analysis
+    root_cause_analysis(data, selected_column, anomalies)
+
+# Function for root cause analysis
+def root_cause_analysis(data, selected_column, anomalies):
+    # Extract data for analysis
+    anomaly_indices = anomalies == -1
+    anomaly_data = data[anomaly_indices]
+    normal_data = data[anomalies == 1]
+
+    # Compute correlation matrix
+    correlation_matrix = data.corr()
+
+    # Plot heatmap of correlation matrix
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+    plt.title("Correlation Matrix")
+    plt.show()
+
+    # Compute feature importance using Isolation Forest
+    model = IsolationForest()
+    model.fit(data.drop(columns=[selected_column]))
+    feature_importance = model.feature_importances_
+
+    # Sort features by importance
+    feature_importance_sorted = sorted(zip(data.columns, feature_importance), key=lambda x: x[1], reverse=True)
+
+    # Print top features
+    print("Top features by importance:")
+    for feature, importance in feature_importance_sorted:
+        print(f"{feature}: {importance:.4f}")
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Column Plotter with Anomaly Detection")
+
+# Load data from multiple Excel files
+data = load_data()
+if data is not None:
+    columns = list(data.columns)
+else:
+    columns = []
+
+# Create frame for column selection
+column_frame = ttk.Frame(root)
+column_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_column = ttk.Label(column_frame, text="Select Column to Plot:")
+label_column.pack(side=tk.TOP, padx=10, pady=5)
+
+column_combobox = ttk.Combobox(column_frame, values=columns, state="readonly", width=40)
+column_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button
+def plot_selected():
+    selected_column = column_combobox.get()
+    plot_selected_column(selected_column)
+
+plot_button = ttk.Button(column_frame, text="Plot Selected Column", command=plot_selected)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
+                                    RCA
+                                    
+                                    
+------------------------------------------------------------------------------------
+
+
+
+
+				GUI
+				
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Specify the paths to the Excel files (modify as needed)
+excel_file_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from multiple Excel files
+def load_data():
+    try:
+        # Load data from each Excel file and concatenate into a single DataFrame
+        data_frames = [pd.read_excel(file) for file in excel_file_paths]
+        return pd.concat(data_frames)
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(data):
+    model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+    return model.fit_predict(data)
+
+# Function to plot selected column
+def plot_selected_column(selected_column):
+    # Check if a column is selected
+    if not selected_column:
+        messagebox.showerror("Error", "Please select a column to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    data = load_data()
+    if data is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(data.drop(columns=[selected_column]))
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected column across all files
+    for file_path in excel_file_paths:
+        # Load data from current file
+        df = pd.read_excel(file_path)
+        # Plot selected column against the first column (time values)
+        ax.plot(df.iloc[:, 0], df[selected_column], marker='o', linestyle='-', label=file_path)
+
+    # Reset index for data
+    data.reset_index(drop=True, inplace=True)
+
+    # Mark anomaly points on the plot
+    anomaly_indices = anomalies == -1
+    anomaly_points = data[anomaly_indices]
+    ax.scatter(anomaly_points.iloc[:, 0], anomaly_points[selected_column], color='red', label='Anomaly')
+
+    # Anomaly detection point indication with coordinates
+    for i, txt in enumerate(anomaly_points[selected_column]):
+        ax.annotate(f'({anomaly_points.iloc[i, 0]:.2f}, {txt:.2f})', (anomaly_points.iloc[i, 0], txt), textcoords="offset points", xytext=(0,10), ha='center', fontsize=8)
+
+    ax.set_title(f'Column: {selected_column}')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Set x-axis format to datetime if applicable
+    if pd.api.types.is_datetime64_any_dtype(data.iloc[:, 0]):
+        ax.xaxis_date()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    # Perform root cause analysis
+    root_cause_analysis(data, selected_column, anomalies)
+
+# Function for root cause analysis
+def root_cause_analysis(data, selected_column, anomalies):
+    # Extract data for analysis
+    anomaly_indices = anomalies == -1
+    anomaly_data = data[anomaly_indices]
+    normal_data = data[anomalies == 1]
+
+    # Compute correlation matrix
+    correlation_matrix = data.corr()
+
+    # Plot heatmap of correlation matrix
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+    plt.title("Correlation Matrix")
+    plt.show()
+
+    # Compute feature importance using Isolation Forest
+    model = IsolationForest()
+    model.fit(data.drop(columns=[selected_column]))
+    feature_importance = model.feature_importances_
+
+    # Sort features by importance
+    feature_importance_sorted = sorted(zip(data.columns, feature_importance), key=lambda x: x[1], reverse=True)
+
+    # Print top features
+    print("Top features by importance:")
+    for feature, importance in feature_importance_sorted:
+        print(f"{feature}: {importance:.4f}")
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Column Plotter with Anomaly Detection")
+
+# Load data from multiple Excel files
+data = load_data()
+if data is not None:
+    columns = list(data.columns)
+else:
+    columns = []
+
+# Create frame for column selection
+column_frame = ttk.Frame(root)
+column_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_column = ttk.Label(column_frame, text="Select Column to Plot:")
+label_column.pack(side=tk.TOP, padx=10, pady=5)
+
+column_combobox = ttk.Combobox(column_frame, values=columns, state="readonly", width=40)
+column_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button
+def plot_selected():
+    selected_column = column_combobox.get()
+    plot_selected_column(selected_column)
+
+plot_button = ttk.Button(column_frame, text="Plot Selected Column", command=plot_selected)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+			NOMINAL AND NON NOMINAL
+			
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Specify the paths to the Excel files (modify as needed)
+nominal_excel_path = "D:/Data/Nominal.xlsx"
+non_nominal_excel_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path)
+        non_nominal_data_frames = [pd.read_excel(file) for file in non_nominal_excel_paths]
+        return nominal_data, non_nominal_data_frames
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(nominal_data, non_nominal_data):
+    anomalies = []
+    for non_nominal_data_frame in non_nominal_data:
+        model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+        model.fit(nominal_data)
+        predicted = model.predict(non_nominal_data_frame)
+        anomalies.append(predicted)
+    return anomalies
+
+# Function to plot selected parameter
+def plot_selected_parameter(selected_parameter):
+    # Check if a parameter is selected
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    nominal_data, non_nominal_data_frames = load_data()
+    if nominal_data is None or non_nominal_data_frames is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(nominal_data[[selected_parameter]], [df[[selected_parameter]] for df in non_nominal_data_frames])
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected parameter across all files
+    for i, non_nominal_data_frame in enumerate(non_nominal_data_frames):
+        # Plot selected parameter
+        ax.plot(non_nominal_data_frame.index, non_nominal_data_frame[selected_parameter], marker='o', linestyle='-', label=f"File {i+1}")
+
+        # Mark anomaly points on the plot
+        anomaly_indices = anomalies[i] == -1
+        anomaly_points = non_nominal_data_frame[anomaly_indices]
+        ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label=f'Anomaly in File {i+1}')
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Parameter Plotter with Anomaly Detection")
+
+# Load data from Excel files
+nominal_data, non_nominal_data_frames = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button
+def plot_selected():
+    selected_parameter = parameter_combobox.get()
+    plot_selected_parameter(selected_parameter)
+
+plot_button = ttk.Button(parameter_frame, text="Plot Selected Parameter", command=plot_selected)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+---------------------------------------------------------------------------------------
+
+
+			SPEED UP
+			
+			
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+from concurrent.futures import ProcessPoolExecutor
+
+# Specify the paths to the Excel files (modify as needed)
+nominal_excel_path = "D:/Data/Nominal.xlsx"
+non_nominal_excel_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path)
+        non_nominal_data_frames = [pd.read_excel(file) for file in non_nominal_excel_paths]
+        return nominal_data, non_nominal_data_frames
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(args):
+    nominal_data, non_nominal_data_frame = args
+    model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+    model.fit(nominal_data)
+    return model.predict(non_nominal_data_frame)
+
+# Function to plot selected parameter
+def plot_selected_parameter(selected_parameter):
+    # Check if a parameter is selected
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    nominal_data, non_nominal_data_frames = load_data()
+    if nominal_data is None or non_nominal_data_frames is None:
+        return
+
+    with ProcessPoolExecutor() as executor:
+        args = [(nominal_data[[selected_parameter]], df[[selected_parameter]]) for df in non_nominal_data_frames]
+        anomalies = list(executor.map(detect_anomalies, args))
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected parameter across all files
+    for i, non_nominal_data_frame in enumerate(non_nominal_data_frames):
+        # Plot selected parameter
+        ax.plot(non_nominal_data_frame.index, non_nominal_data_frame[selected_parameter], marker='o', linestyle='-', label=f"File {i+1}")
+
+        # Mark anomaly points on the plot
+        anomaly_indices = anomalies[i] == -1
+        anomaly_points = non_nominal_data_frame[anomaly_indices]
+        ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label=f'Anomaly in File {i+1}')
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Parameter Plotter with Anomaly Detection")
+
+# Load data from Excel files
+nominal_data, non_nominal_data_frames = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button
+def plot_selected():
+    selected_parameter = parameter_combobox.get()
+    plot_selected_parameter(selected_parameter)
+
+plot_button = ttk.Button(parameter_frame, text="Plot Selected Parameter", command=plot_selected)
+plot_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
+
+
+
+--------------------------------------------------------------------------------------
+
+RCA - 3
+
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Specify the paths to the Excel files (modify as needed)
+nominal_excel_path = "D:/Data/Nominal.xlsx"
+non_nominal_excel_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path)
+        non_nominal_data_frames = [pd.read_excel(file) for file in non_nominal_excel_paths]
+        return nominal_data, non_nominal_data_frames
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(nominal_data, non_nominal_data):
+    anomalies = []
+    for non_nominal_data_frame in non_nominal_data:
+        model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+        model.fit(nominal_data)
+        predicted = model.predict(non_nominal_data_frame)
+        anomalies.append(predicted)
+    return anomalies
+
+# Function to plot selected parameter
+def plot_selected_parameter(selected_parameter):
+    # Check if a parameter is selected
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    nominal_data, non_nominal_data_frames = load_data()
+    if nominal_data is None or non_nominal_data_frames is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(nominal_data[[selected_parameter]], [df[[selected_parameter]] for df in non_nominal_data_frames])
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected parameter across all files
+    for i, non_nominal_data_frame in enumerate(non_nominal_data_frames):
+        # Plot selected parameter
+        ax.plot(non_nominal_data_frame.index, non_nominal_data_frame[selected_parameter], marker='o', linestyle='-', label=f"File {i+1}")
+
+        # Mark anomaly points on the plot
+        anomaly_indices = anomalies[i] == -1
+        anomaly_points = non_nominal_data_frame[anomaly_indices]
+        ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label=f'Anomaly in File {i+1}')
+
+        # Perform root cause analysis for each anomaly
+        root_cause_analysis(non_nominal_data_frame, selected_parameter, anomaly_points)
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Function for root cause analysis
+def root_cause_analysis(data, selected_parameter, anomaly_points):
+    # Compute correlation matrix
+    correlation_matrix = data.corr()
+
+    # Get absolute correlation values for the selected parameter
+    parameter_correlations = correlation_matrix[selected_parameter].abs().sort_values(ascending=False)
+
+    # Identify top correlated parameters
+    top_correlated_parameters = parameter_correlations.index[1:4]  # Taking top 3 correlated parameters
+    
+    # Print explanation for anomaly and responsible parameters
+    print(f"Anomaly Detected for {selected_parameter}:")
+    print(f"Root Cause Analysis:")
+    print(f"The anomaly is likely caused by fluctuations in:")
+    for parameter in top_correlated_parameters:
+        print(f"- {parameter}")
+
+# Function to plot selected column
+def plot_selected_column(selected_column):
+    # Check if a column is selected
+    if not selected_column:
+        messagebox.showerror("Error", "Please select a column to plot.")
+        return
+
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    data = load_data()
+    if data is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(data.drop(columns=[selected_column]))
+
+    fig = Figure(figsize=(12, 8))
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected column across all files
+    for file_path in non_nominal_excel_paths:
+        # Load data from current file
+        df = pd.read_excel(file_path)
+        # Plot selected column against the first column (time values)
+        ax.plot(df.iloc[:, 0], df[selected_column], marker='o', linestyle='-', label=file_path)
+
+    # Reset index for data
+    data.reset_index(drop=True, inplace=True)
+
+    # Mark anomaly points on the plot
+    anomaly_indices = anomalies == -1
+    anomaly_points = data[anomaly_indices]
+    ax.scatter(anomaly_points.iloc[:, 0], anomaly_points[selected_column], color='red', label='Anomaly')
+
+    ax.set_title(f'Column: {selected_column}')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Set x-axis format to datetime if applicable
+    if pd.api.types.is_datetime64_any_dtype(data.iloc[:, 0]):
+        ax.xaxis_date()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Anomaly Detection and Root Cause Analysis")
+
+# Load data from Excel files
+nominal_data, non_nominal_data_frames = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for parameter plot
+def plot_selected_parameter_wrapper():
+    selected_parameter = parameter_combobox.get()
+    plot_selected_parameter(selected_parameter)
+
+plot_parameter_button = ttk.Button(parameter_frame, text="Plot Selected Parameter", command=plot_selected_parameter_wrapper)
+plot_parameter_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create frame for column selection
+column_frame = ttk.Frame(root)
+column_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_column = ttk.Label(column_frame, text="Select Column to Plot:")
+label_column.pack(side=tk.TOP, padx=10, pady=5)
+
+column_combobox = ttk.Combobox(column_frame, values=parameters, state="readonly", width=40)
+column_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for column plot
+def plot_selected_column_wrapper():
+    selected_column = column_combobox.get()
+    plot_selected_column(selected_column)
+
+plot_column_button = ttk.Button(column_frame, text="Plot Selected Column", command=plot_selected_column_wrapper)
+plot_column_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
+				
+
+------------------------Let's explain this code snippet:
+
+Compute Correlation Matrix:
+The corr() function computes the pairwise correlation of columns in the dataset. It returns a correlation matrix where each entry [i, j] corresponds to the correlation coefficient between columns i and j.
+
+Get Correlation Values for Selected Parameter:
+We extract the correlation values for the selected parameter from the correlation matrix and sort them in descending order of absolute magnitude. This gives us an idea of how strongly each parameter is correlated with the selected parameter.
+
+Identify Top Correlated Parameters:
+We exclude the selected parameter itself from the list of correlated parameters and take the top three correlated parameters. These parameters are the ones most strongly correlated with the selected parameter and are likely candidates for being the root cause of the anomaly.
+
+Print Explanation:
+We print an explanation for the detected anomaly, stating the selected parameter, and then list the top correlated parameters as potential root causes for the anomaly.
+
+By examining the correlations between parameters in the dataset, this code identifies the parameters that are most likely responsible for causing an anomaly in the selected parameter. These identified parameters are then printed as part of the root cause analysis explanation.
+time	phaseBit	mass-dynamics	E1FiringBit	E2FiringBit	E3FiringBit	E4FiringBit	CengFirBit - NA	Engine1-Thrust	Engine2-Thrust	Engine3-Thrust	Engine4-Thrust	CentalEngine-Thrust - NA	EngTorque-Yaw	EngTorque-Roll	EngTorque-Pitch	Dynamics-MCMFPA-rVector-x	Dynamics-MCMFPA-rVector-y	Dynamics-MCMFPA-rVector-z	Dynamics-MCMFPA-vVector-vx	Dynamics-MCMFPA-vVector-vy	Dynamics-MCMFPA-vVector-vz	qbody-1	qbody-2	qbody-3	qbody-4	wbody-1	wbody-2	wbody-3	Dynamics-latitude-ME	Dynamics-longitude-ME	Dynamics-height-ME	LanderPositionENU-East	LanderPositionENU-North	LanderPositionENU-Up(Not same as height)	LanderVelocityENU-East	LanderVelocityENU-North	LanderVelocityENU-Up	-1	-1	-1	LanderHeightFromSurface (With DEM)	LanderYawWRTVertical	LanderRollWRTVertical	LanderPitchWRTVertical	R1-AvgThrust	R2-AvgThrust	R3-AvgThrust	R4-AvgThrust	R5-AvgThrust	R6-AvgThrust	R7-AvgThrust	R8-AvgThrust	TotalRCSAvgThrust	NetThrustFromEngineAndRCS	DynamicsHeight(Height from mean moon surface)	Dynamics-J2000-rVector-x	Dynamics-J2000-rVector-y	Dynamics-J2000-rVector-z	Dynamics-J2000-vVector-vx	Dynamics-J2000-vVector-vy	Dynamics-J2000-vVector-vz	VerticalVelocity(velocity along radial mcmf vector)	arc range	HorizontalVelocity (Net horizontal velocity, norm taken so always positive)	lNav-Dynamics-r-NUE(1)	lNav-Dynamics-r-NUE(2)	lNav-Dynamics-r-NUE(3)	lNav-Dynamics-v-NUE(1)	lNav-Dynamics-v-NUE(2)	lNav-Dynamics-v-NUE(3)	lNav-Qlocaldyn-1	lNav-Qlocaldyn-2	lNav-Qlocaldyn-3	lNav-Qlocaldyn-4	Usable Oxidizer Left	Usable Fuel Left	Oxidizer Consumed	Fuel Consumed	ThrusterConsumedMass (Outdated)	ALSPath	local surface slope	curvilinear cross (Z) landing site distance	curvilinear along (X) landing site distance	Net horizontal distance from landing site norm(X,Z)	ThrusterConsumedMass 	TotalAccInIIU-x	TotalAccInIIU-y	TotalAccInIIU-z	CdA-Ox-1	CdA-Ox-2	CdA-Ox-3	CdA-Ox-4	CdA-Fu-1	CdA-Fu-2	CdA-Fu-3	CdA-Fu-4
+
+----------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------------------------------------------
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Specify the paths to the Excel files (modify as needed)
+nominal_excel_path = "D:/Data/Nominal.xlsx"
+non_nominal_excel_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path)
+        non_nominal_data_frames = [pd.read_excel(file) for file in non_nominal_excel_paths]
+        return nominal_data, non_nominal_data_frames
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(nominal_data, non_nominal_data):
+    anomalies = []
+    for non_nominal_data_frame in non_nominal_data:
+        model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+        model.fit(nominal_data)
+        predicted = model.predict(non_nominal_data_frame)
+        anomalies.append(predicted)
+    return anomalies
+
+# Function to plot selected parameter
+def plot_selected_parameter(selected_parameter):
+    # Check if a parameter is selected
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots and anomaly details
+    plot_frame.clear()
+    anomaly_details_text.delete("1.0", tk.END)
+
+    # Load data
+    nominal_data, non_nominal_data_frames = load_data()
+    if nominal_data is None or non_nominal_data_frames is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(nominal_data[[selected_parameter]], [df[[selected_parameter]] for df in non_nominal_data_frames])
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected parameter across all files
+    for i, non_nominal_data_frame in enumerate(non_nominal_data_frames):
+        # Plot selected parameter
+        ax.plot(non_nominal_data_frame.index, non_nominal_data_frame[selected_parameter], marker='o', linestyle='-', label=f"File {i+1}")
+
+        # Mark anomaly points on the plot
+        anomaly_indices = anomalies[i] == -1
+        anomaly_points = non_nominal_data_frame[anomaly_indices]
+        ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label=f'Anomaly in File {i+1}')
+
+        # Perform root cause analysis for each anomaly
+        root_cause_analysis(non_nominal_data_frame, selected_parameter, anomaly_points)
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Function for root cause analysis
+def root_cause_analysis(data, selected_parameter, anomaly_points):
+    # Compute correlation matrix
+    correlation_matrix = data.corr()
+
+    # Get absolute correlation values for the selected parameter
+    parameter_correlations = correlation_matrix[selected_parameter].abs().sort_values(ascending=False)
+
+    # Identify top correlated parameters
+    top_correlated_parameters = parameter_correlations.index[1:4]  # Taking top 3 correlated parameters
+    
+    # Print explanation for anomaly and responsible parameters
+    anomaly_details_text.insert(tk.END, f"Anomaly Detected for {selected_parameter}:\n")
+    anomaly_details_text.insert(tk.END, f"Root Cause Analysis:\n")
+    anomaly_details_text.insert(tk.END, f"The anomaly is likely caused by fluctuations in:\n")
+    for parameter in top_correlated_parameters:
+        anomaly_details_text.insert(tk.END, f"- {parameter}\n")
+
+# Function to plot selected column
+def plot_selected_column(selected_column):
+    # Check if a column is selected
+    if not selected_column:
+        messagebox.showerror("Error", "Please select a column to plot.")
+        return
+
+    # Clear previous plots and anomaly details
+    plot_frame.clear()
+    anomaly_details_text.delete("1.0", tk.END)
+
+    # Load data
+    data = load_data()
+    if data is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(data.drop(columns=[selected_column]))
+
+    fig = Figure(figsize=(12, 8))
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected column across all files
+    for file_path in non_nominal_excel_paths:
+        # Load data from current file
+        df = pd.read_excel(file_path)
+        # Plot selected column against the first column (time values)
+        ax.plot(df.iloc[:, 0], df[selected_column], marker='o', linestyle='-', label=file_path)
+
+    # Reset index for data
+    data.reset_index(drop=True, inplace=True)
+
+    # Mark anomaly points on the plot
+    anomaly_indices = anomalies == -1
+    anomaly_points = data[anomaly_indices]
+    ax.scatter(anomaly_points.iloc[:, 0], anomaly_points[selected_column], color='red', label='Anomaly')
+
+    ax.set_title(f'Column: {selected_column}')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Set x-axis format to datetime if applicable
+    if pd.api.types.is_datetime64_any_dtype(data.iloc[:, 0]):
+        ax.xaxis_date()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Anomaly Detection and Root Cause Analysis")
+
+# Load data from Excel files
+nominal_data, non_nominal_data_frames = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for parameter plot
+def plot_selected_parameter_wrapper():
+    selected_parameter = parameter_combobox.get()
+    plot_selected_parameter(selected_parameter)
+
+plot_parameter_button = ttk.Button(parameter_frame, text="Plot Selected Parameter", command=plot_selected_parameter_wrapper)
+plot_parameter_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create frame for column selection
+column_frame = ttk.Frame(root)
+column_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_column = ttk.Label(column_frame, text="Select Column to Plot:")
+label_column.pack(side=tk.TOP, padx=10, pady=5)
+
+column_combobox = ttk.Combobox(column_frame, values=parameters, state="readonly", width=40)
+column_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for column plot
+def plot_selected_column_wrapper():
+    selected_column = column_combobox.get()
+    plot_selected_column(selected_column)
+
+plot_column_button = ttk.Button(column_frame, text="Plot Selected Column", command=plot_selected_column_wrapper)
+plot_column_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Create text widget for displaying anomaly details
+anomaly_details_text = tk.Text(root, height=10, width=100)
+anomaly_details_text.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+# Start the Tkinter event loop
+root.mainloop()
+--------------------
+
+
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+
+# Paths to Excel files
+nominal_excel_path = "nominal_data.xlsx"
+anomaly_excel_path = "anomaly_data.xlsx"
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path)
+        anomaly_data = pd.read_excel(anomaly_excel_path)
+        return nominal_data, anomaly_data
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(nominal_data, anomaly_data):
+    model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+    model.fit(nominal_data)
+    predicted = model.predict(anomaly_data)
+    return predicted
+
+# Function for root cause analysis
+def root_cause_analysis(anomaly_data, anomaly_index):
+    anomaly_point = anomaly_data.iloc[anomaly_index]
+    correlated_parameters = anomaly_data.corrwith(anomaly_point).abs().sort_values(ascending=False)[1:4]  # Top 3 correlated parameters
+    return correlated_parameters.index.tolist()
+
+# Function to plot anomalies
+def plot_anomalies():
+    selected_parameter = parameter_combobox.get()
+
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    nominal_data, anomaly_data = load_data()
+    if nominal_data is None or anomaly_data is None:
+        return
+
+    # Detect anomalies
+    anomalies = detect_anomalies(nominal_data[[selected_parameter]], anomaly_data[[selected_parameter]])
+
+    # Create plot
+    fig = Figure(figsize=(8, 6))
+    ax = fig.add_subplot(111)
+
+    # Plot data
+    ax.plot(anomaly_data.index, anomaly_data[selected_parameter], marker='o', linestyle='-', label="Data")
+
+    # Highlight anomalies
+    anomaly_indices = anomalies == -1
+    anomaly_points = anomaly_data[anomaly_indices]
+    ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label='Anomaly')
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    # Display root cause analysis
+    root_causes = []
+    for i, is_anomaly in enumerate(anomalies):
+        if is_anomaly == -1:
+            root_causes.append(root_cause_analysis(anomaly_data, i))
+
+    if root_causes:
+        messagebox.showinfo("Root Causes", f"Anomaly detected for {selected_parameter}. Root causes: {root_causes}")
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Anomaly Detection and Root Cause Analysis")
+
+# Load data
+nominal_data, anomaly_data = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for parameter plot
+plot_parameter_button = ttk.Button(parameter_frame, text="Plot Anomalies", command=plot_anomalies)
+plot_parameter_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+------------------------------------------
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+
+# Specify the paths to the Excel files
+nominal_excel_path = "D:/Data/Nominal.xlsx"
+non_nominal_excel_paths = [
+    "D:/Data/Book12.xlsx",
+    "D:/Data/Book13.xlsx",
+    "D:/Data/Book14.xlsx",
+    # Add more paths as needed
+]
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path)
+        non_nominal_data_frames = [pd.read_excel(file) for file in non_nominal_excel_paths]
+        return nominal_data, non_nominal_data_frames
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(nominal_data, non_nominal_data):
+    anomalies = []
+    for non_nominal_data_frame in non_nominal_data:
+        model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+        model.fit(nominal_data)
+        predicted = model.predict(non_nominal_data_frame)
+        anomalies.append(predicted)
+    return anomalies
+
+# Function to plot selected parameter
+def plot_selected_parameter(selected_parameter):
+    # Check if a parameter is selected
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    nominal_data, non_nominal_data_frames = load_data()
+    if nominal_data is None or non_nominal_data_frames is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(nominal_data[[selected_parameter]], [df[[selected_parameter]] for df in non_nominal_data_frames])
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected parameter across all files
+    for i, non_nominal_data_frame in enumerate(non_nominal_data_frames):
+        # Plot selected parameter
+        ax.plot(non_nominal_data_frame.index, non_nominal_data_frame[selected_parameter], marker='o', linestyle='-', label=f"File {i+1}")
+
+        # Mark anomaly points on the plot
+        anomaly_indices = anomalies[i] == -1
+        anomaly_points = non_nominal_data_frame[anomaly_indices]
+        ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label=f'Anomaly in File {i+1}')
+
+        # Perform root cause analysis for each anomaly
+        root_cause_analysis(non_nominal_data_frame, selected_parameter, anomaly_points)
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Index')
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Function for root cause analysis
+def root_cause_analysis(data, selected_parameter, anomaly_points):
+    # Implement your root cause analysis logic here
+    pass
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Anomaly Detection and Root Cause Analysis")
+
+# Load data from Excel files
+nominal_data, non_nominal_data_frames = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for parameter plot
+def plot_selected_parameter_wrapper():
+    selected_parameter = parameter_combobox.get()
+    plot_selected_parameter(selected_parameter)
+
+plot_parameter_button = ttk.Button(parameter_frame, text="Plot Selected Parameter", command=plot_selected_parameter_wrapper)
+plot_parameter_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
+
