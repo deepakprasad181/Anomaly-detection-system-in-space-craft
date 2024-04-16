@@ -1,0 +1,124 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+
+# Specify the paths to the Excel files
+nominal_excel_path = "D:/Data/Book12.xlsx"
+non_nominal_excel_paths = ["D:/Data/Book13.xlsx", "D:/Data/Book14.xlsx"]
+
+# Function to load data from Excel files
+def load_data():
+    try:
+        nominal_data = pd.read_excel(nominal_excel_path, index_col=0)  # Use the first column as index
+        non_nominal_data_frames = [pd.read_excel(file, index_col=0) for file in non_nominal_excel_paths]
+        return nominal_data, non_nominal_data_frames
+    except Exception as e:
+        messagebox.showerror("Error", f"Error loading data: {e}")
+        return None, None
+
+# Function to detect anomalies using Isolation Forest
+def detect_anomalies(nominal_data, non_nominal_data):
+    anomalies = []
+    for non_nominal_data_frame in non_nominal_data:
+        model = IsolationForest(contamination=0.0002)  # Adjust contamination parameter as needed
+        model.fit(nominal_data)
+        predicted = model.predict(non_nominal_data_frame)
+        anomalies.append(predicted)
+    return anomalies
+
+# Function to plot selected parameter
+def plot_selected_parameter(selected_parameter):
+    # Check if a parameter is selected
+    if not selected_parameter:
+        messagebox.showerror("Error", "Please select a parameter to plot.")
+        return
+
+    # Clear previous plots
+    plot_frame.clear()
+
+    # Load data
+    nominal_data, non_nominal_data_frames = load_data()
+    if nominal_data is None or non_nominal_data_frames is None:
+        return
+
+    # Perform anomaly detection
+    anomalies = detect_anomalies(nominal_data[[selected_parameter]], [df[[selected_parameter]] for df in non_nominal_data_frames])
+
+    fig = Figure(figsize=(14, 10))  # Increase the figure size
+    ax = fig.add_subplot(111)
+
+    # Plot data for selected parameter across all files
+    for i, non_nominal_data_frame in enumerate(non_nominal_data_frames):
+        # Plot selected parameter
+        ax.plot(non_nominal_data_frame.index, non_nominal_data_frame[selected_parameter], marker='o', linestyle='-', label=f"File {i+1}")
+
+        # Mark anomaly points on the plot
+        anomaly_indices = anomalies[i] == -1
+        anomaly_points = non_nominal_data_frame[anomaly_indices]
+        ax.scatter(anomaly_points.index, anomaly_points[selected_parameter], color='red', label=f'Anomaly in File {i+1}', zorder=5)
+
+        # Annotate anomaly points with root cause analysis
+        for idx, point in anomaly_points.iterrows():
+            root_cause_text = root_cause_analysis(non_nominal_data_frame, selected_parameter, point)
+            ax.annotate(root_cause_text, (idx, point[selected_parameter]), textcoords="offset points", xytext=(5,5), ha='center', fontsize=8, color='black', zorder=10)
+
+    ax.set_title(f'Parameter: {selected_parameter}')
+    ax.set_xlabel('Time')  # Set x-axis label to 'Time'
+    ax.set_ylabel('Value')
+    ax.legend()
+
+    # Embed the plot in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    # Add navigation toolbar for scrolling, panning, zooming, and resetting
+    toolbar = NavigationToolbar2Tk(canvas, plot_frame)
+    toolbar.update()
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+# Function for root cause analysis
+def root_cause_analysis(data, selected_parameter, anomaly_point):
+    # Implement your root cause analysis logic here
+    # For demonstration, let's just return the selected parameter
+    return f"Anomaly at time {anomaly_point.name}: Parameter '{selected_parameter}' is causing the anomaly."
+
+# Create Tkinter window
+root = tk.Tk()
+root.title("Anomaly Detection and Root Cause Analysis")
+
+# Load data from Excel files
+nominal_data, non_nominal_data_frames = load_data()
+if nominal_data is not None:
+    parameters = list(nominal_data.columns)
+else:
+    parameters = []
+
+# Create frame for parameter selection
+parameter_frame = ttk.Frame(root)
+parameter_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+label_parameter = ttk.Label(parameter_frame, text="Select Parameter to Plot:")
+label_parameter.pack(side=tk.TOP, padx=10, pady=5)
+
+parameter_combobox = ttk.Combobox(parameter_frame, values=parameters, state="readonly", width=40)
+parameter_combobox.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot button for parameter plot
+def plot_selected_parameter_wrapper():
+    selected_parameter = parameter_combobox.get()
+    plot_selected_parameter(selected_parameter)
+
+plot_parameter_button = ttk.Button(parameter_frame, text="Plot Selected Parameter", command=plot_selected_parameter_wrapper)
+plot_parameter_button.pack(side=tk.TOP, padx=10, pady=5)
+
+# Create plot frame
+plot_frame = ttk.Frame(root)
+plot_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+plot_frame.clear = lambda: plot_frame.winfo_children()  # Clear plot frame
+
+# Start the Tkinter event loop
+root.mainloop()
