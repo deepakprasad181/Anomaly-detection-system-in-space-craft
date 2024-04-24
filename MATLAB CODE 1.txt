@@ -1,0 +1,168 @@
+MATLAB CODE 1
+
+function plot_sensor_data()
+
+    % Load nominal and non-nominal datasets from MATLAB workspace
+    try
+        nominal_data = xlsread('DATA WITH PARAMETERS.xlsx'); % Update with your nominal dataset file name
+        non_nominal_data = xlsread('DATA WITH PARAMETERS NON NOMINAL.xlsx'); % Update with your non-nominal dataset file name
+    catch ME
+        errordlg(['Error loading Excel files: ' ME.message], 'Error');
+        return;
+    end
+
+    % Parameter names
+    parameter_names = {'time', 'phaseBit', 'mass-dynamics', 'E1FiringBit', 'E2FiringBit', 'E3FiringBit', 'E4FiringBit', ...
+        'CengFirBit - NA', 'Engine1-Thrust', 'Engine2-Thrust', 'Engine3-Thrust', 'Engine4-Thrust', 'CentalEngine-Thrust - NA', ...
+        'EngTorque-Yaw', 'EngTorque-Roll', 'EngTorque-Pitch', 'Dynamics-MCMFPA-rVector-x', 'Dynamics-MCMFPA-rVector-y', ...
+        'Dynamics-MCMFPA-rVector-z', 'Dynamics-MCMFPA-vVector-vx', 'Dynamics-MCMFPA-vVector-vy', 'Dynamics-MCMFPA-vVector-vz', ...
+        'qbody-1', 'qbody-2', 'qbody-3', 'qbody-4', 'wbody-1', 'wbody-2', 'wbody-3', 'Dynamics-latitude-ME', 'Dynamics-longitude-ME', ...
+        'Dynamics-height-ME', 'LanderPositionENU-East', 'LanderPositionENU-North', 'LanderPositionENU-Up(Not same as height)', ...
+        'LanderVelocityENU-East', 'LanderVelocityENU-North', 'LanderVelocityENU-Up', '-1', 'LanderHeightFromSurface (With DEM)', ...
+        'LanderYawWRTVertical', 'LanderRollWRTVertical', 'LanderPitchWRTVertical', 'R1-AvgThrust', 'R2-AvgThrust', 'R3-AvgThrust', ...
+        'R4-AvgThrust', 'R5-AvgThrust', 'R6-AvgThrust', 'R7-AvgThrust', 'R8-AvgThrust', 'TotalRCSAvgThrust', 'NetThrustFromEngineAndRCS', ...
+        'DynamicsHeight(Height from mean moon surface)', 'Dynamics-J2000-rVector-x', 'Dynamics-J2000-rVector-y', 'Dynamics-J2000-rVector-z', ...
+        'Dynamics-J2000-vVector-vx', 'Dynamics-J2000-vVector-vy', 'Dynamics-J2000-vVector-vz', 'VerticalVelocity(velocity along radial mcmf vector)', ...
+        'arc range', 'HorizontalVelocity (Net horizontal velocity, norm taken so always positive)', 'lNav-Dynamics-r-NUE(1)', ...
+        'lNav-Dynamics-r-NUE(2)', 'lNav-Dynamics-r-NUE(3)', 'lNav-Dynamics-v-NUE(1)', 'lNav-Dynamics-v-NUE(2)', 'lNav-Dynamics-v-NUE(3)', ...
+        'lNav-Qlocaldyn-1', 'lNav-Qlocaldyn-2', 'lNav-Qlocaldyn-3', 'lNav-Qlocaldyn-4', 'Usable Oxidizer Left', 'Usable Fuel Left', ...
+        'Oxidizer Consumed', 'Fuel Consumed', 'ThrusterConsumedMass (Outdated)', 'ALSPath', 'local surface slope', 'curvilinear cross (Z) landing site distance', ...
+        'curvilinear along (X) landing site distance', 'Net horizontal distance from landing site norm(X,Z)', 'ThrusterConsumedMass', ...
+        'TotalAccInIIU-x', 'TotalAccInIIU-y', 'TotalAccInIIU-z', 'CdA-Ox-1', 'CdA-Ox-2', 'CdA-Ox-3', 'CdA-Ox-4', 'CdA-Fu-1', 'CdA-Fu-2', ...
+        'CdA-Fu-3', 'CdA-Fu-4'};
+
+    % Create a MATLAB App with GUI components
+    app = uifigure('Name', 'Sensor Data Plotter', ...
+        'Position', [100, 100, 800, 600]);
+
+    % Create a dropdown menu for parameter selection
+    parameterDropDown = uidropdown(app, ...
+        'Position', [50, 500, 200, 30], ...
+        'Items', parameter_names, ...
+        'Value', parameter_names{1}, ... 
+        'ValueChangedFcn', @(dropdown,event) plot_selected_parameter(dropdown.Value, nominal_data, non_nominal_data)); % Add ValueChangedFcn callback
+
+    % Create an axes for plotting
+    plotAxes = uiaxes(app, ...
+        'Position', [50, 50, 700, 400]);
+
+    % Function to plot selected parameter
+    function plot_selected_parameter(selected_parameter, nominal_data, non_nominal_data)
+        % Get the index of the selected parameter
+        selected_parameter_index = find(strcmp(selected_parameter, parameter_names));
+
+        % Clear previous plot
+        cla(plotAxes);
+
+        % Check if selected parameter index is valid
+        if isempty(selected_parameter_index)
+            errordlg('Invalid parameter selected.', 'Error');
+            return;
+        end
+
+        % Plot nominal data for the selected parameter
+        plot(plotAxes, nominal_data(:, 1), nominal_data(:, selected_parameter_index), 'b');
+        hold on;
+
+        % Plot non-nominal data for the selected parameter
+        plot(plotAxes, non_nominal_data(:, 1), non_nominal_data(:, selected_parameter_index), 'r.');
+
+        % Set plot title and labels
+        title(plotAxes, ['Parameter: ' selected_parameter]);
+        xlabel(plotAxes, 'Time');
+        ylabel(plotAxes, selected_parameter);
+
+        % Add legend
+        legend(plotAxes, {'Nominal Data', 'Non-Nominal Data'}, 'Location', 'best');
+    end
+
+end
+
+----------
+CODE 2
+----------
+
+
+function plot_sensor_data()
+
+    % Load nominal and non-nominal datasets from MATLAB workspace
+    try
+        nominal_data = xlsread('DATA WITH PARAMETERS.xlsx'); % Update with your nominal dataset file name
+        non_nominal_data = xlsread('DATA WITH PARAMETERS NON NOMINAL.xlsx'); % Update with your non-nominal dataset file name
+    catch ME
+        errordlg(['Error loading Excel files: ' ME.message], 'Error');
+        return;
+    end
+
+    % Parameter names
+    parameter_names = {'time', 'phaseBit', 'mass-dynamics', 'E1FiringBit', 'E2FiringBit', 'E3FiringBit', 'E4FiringBit', ...
+        'CengFirBit - NA', 'Engine1-Thrust', 'Engine2-Thrust', 'Engine3-Thrust', 'Engine4-Thrust', 'CentalEngine-Thrust - NA', ...
+        'EngTorque-Yaw', 'EngTorque-Roll', 'EngTorque-Pitch', 'Dynamics-MCMFPA-rVector-x', 'Dynamics-MCMFPA-rVector-y', ...
+        'Dynamics-MCMFPA-rVector-z', 'Dynamics-MCMFPA-vVector-vx', 'Dynamics-MCMFPA-vVector-vy', 'Dynamics-MCMFPA-vVector-vz', ...
+        'qbody-1', 'qbody-2', 'qbody-3', 'qbody-4', 'wbody-1', 'wbody-2', 'wbody-3', 'Dynamics-latitude-ME', 'Dynamics-longitude-ME', ...
+        'Dynamics-height-ME', 'LanderPositionENU-East', 'LanderPositionENU-North', 'LanderPositionENU-Up(Not same as height)', ...
+        'LanderVelocityENU-East', 'LanderVelocityENU-North', 'LanderVelocityENU-Up', '-1', 'LanderHeightFromSurface (With DEM)', ...
+        'LanderYawWRTVertical', 'LanderRollWRTVertical', 'LanderPitchWRTVertical', 'R1-AvgThrust', 'R2-AvgThrust', 'R3-AvgThrust', ...
+        'R4-AvgThrust', 'R5-AvgThrust', 'R6-AvgThrust', 'R7-AvgThrust', 'R8-AvgThrust', 'TotalRCSAvgThrust', 'NetThrustFromEngineAndRCS', ...
+        'DynamicsHeight(Height from mean moon surface)', 'Dynamics-J2000-rVector-x', 'Dynamics-J2000-rVector-y', 'Dynamics-J2000-rVector-z', ...
+        'Dynamics-J2000-vVector-vx', 'Dynamics-J2000-vVector-vy', 'Dynamics-J2000-vVector-vz', 'VerticalVelocity(velocity along radial mcmf vector)', ...
+        'arc range', 'HorizontalVelocity (Net horizontal velocity, norm taken so always positive)', 'lNav-Dynamics-r-NUE(1)', ...
+        'lNav-Dynamics-r-NUE(2)', 'lNav-Dynamics-r-NUE(3)', 'lNav-Dynamics-v-NUE(1)', 'lNav-Dynamics-v-NUE(2)', 'lNav-Dynamics-v-NUE(3)', ...
+        'lNav-Qlocaldyn-1', 'lNav-Qlocaldyn-2', 'lNav-Qlocaldyn-3', 'lNav-Qlocaldyn-4', 'Usable Oxidizer Left', 'Usable Fuel Left', ...
+        'Oxidizer Consumed', 'Fuel Consumed', 'ThrusterConsumedMass (Outdated)', 'ALSPath', 'local surface slope', 'curvilinear cross (Z) landing site distance', ...
+        'curvilinear along (X) landing site distance', 'Net horizontal distance from landing site norm(X,Z)', 'ThrusterConsumedMass', ...
+        'TotalAccInIIU-x', 'TotalAccInIIU-y', 'TotalAccInIIU-z', 'CdA-Ox-1', 'CdA-Ox-2', 'CdA-Ox-3', 'CdA-Ox-4', 'CdA-Fu-1', 'CdA-Fu-2', ...
+        'CdA-Fu-3', 'CdA-Fu-4'};
+
+    % Create a MATLAB App with GUI components
+    app = uifigure('Name', 'Sensor Data Plotter', ...
+        'Position', [100, 100, 800, 600]);
+
+    % Create a dropdown menu for parameter selection
+    parameterDropDown = uidropdown(app, ...
+        'Position', [50, 500, 200, 30], ...
+        'Items', parameter_names, ...
+        'Value', parameter_names{1}, ... 
+        'ValueChangedFcn', @(dropdown,event) plot_selected_parameter(dropdown.Value, nominal_data, non_nominal_data)); % Add ValueChangedFcn callback
+
+    % Create an axes for plotting
+    plotAxes = uiaxes(app, ...
+        'Position', [50, 50, 700, 400]);
+
+    % Function to plot selected parameter
+    function plot_selected_parameter(selected_parameter, nominal_data, non_nominal_data)
+        % Get the index of the selected parameter
+        selected_parameter_index = find(strcmp(selected_parameter, parameter_names));
+
+        % Clear previous plot
+        cla(plotAxes);
+
+        % Check if selected parameter index is valid
+        if isempty(selected_parameter_index)
+            errordlg('Invalid parameter selected.', 'Error');
+            return;
+        end
+
+        % Plot nominal data for the selected parameter
+        plot(plotAxes, nominal_data(:, 1), nominal_data(:, selected_parameter_index), 'b');
+        hold on;
+
+        % Plot non-nominal data for the selected parameter
+        plot(plotAxes, non_nominal_data(:, 1), non_nominal_data(:, selected_parameter_index), 'r.');
+
+        % Set plot title and labels
+        title(plotAxes, ['Parameter: ' selected_parameter]);
+        xlabel(plotAxes, 'Time');
+        ylabel(plotAxes, selected_parameter);
+
+        % Add legend
+        legend(plotAxes, {'Nominal Data', 'Non-Nominal Data'}, 'Location', 'best');
+    end
+
+end
+
+----------
+CODE 3
+----------
+
+
